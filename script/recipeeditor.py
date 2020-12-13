@@ -9,6 +9,7 @@ from tkinter import filedialog
 from shutil import copyfile
 from ttkthemes import ThemedStyle, ThemedTk
 import json
+from more_itertools import pairwise
 
 
 class RecipeEditor:
@@ -27,7 +28,7 @@ class RecipeEditor:
         try:
             with open(self.recipeDataFileName, "r") as recipeDataJson:
                 self.recipes = json.load(recipeDataJson)
-            self.currentRecipe = list(self.recipes.dict.values())[0]
+            self.currentRecipe = list(self.recipes.values())[0]
         except:
             self.recipes = Data().getRecipeDataWithBasicRecipe()
             fileRecipes = open(self.recipeDataFileName, 'w+')
@@ -84,7 +85,6 @@ class RecipeEditor:
 
     def chooseNewRecipe(self):
         newRecipeTitle = self.recipeListVariable.get()
-        print(newRecipeTitle)
         self.currentRecipe = self.recipes.dict[newRecipeTitle]
         self.updateInput()
         self.selectRecipeWindow.destroy()
@@ -137,7 +137,6 @@ class RecipeEditor:
         self.recipeNameEntry = Entry(self.app, width=50)
         self.recipeNameEntry.grid(
             column=1, row=self.maxRow, columnspan=4, sticky="w")
-        print(self.currentRecipe)
         self.recipeNameEntry.insert(0, self.currentRecipe["recipeTitle"])
         self.maxRow += 1
 
@@ -177,7 +176,7 @@ class RecipeEditor:
         ingridientstring = ""
         for ingreds in self.currentRecipe["ingredients"]:
             if ingreds != "" and ingreds != None:
-                ingridientstring = ingreds+":\n"
+                ingridientstring += ingreds+":\n"
             for ingridient in self.currentRecipe["ingredients"][ingreds]:
                 ingridientstring += ingridient+"\n"
         self.ingridienttextbox.insert(END, ingridientstring)
@@ -205,40 +204,44 @@ class RecipeEditor:
 
     def saveRecipe(self):
         del self.recipes[self.currentRecipe["recipeTitle"]]
-        self.currentRecipe["recipeTitle"]=self.recipeNameEntry.get()
+        self.currentRecipe["recipeTitle"] = self.recipeNameEntry.get()
         self.currentRecipe["author"] = self.authorEntry.get()
         self.currentRecipe["indexTags"] = [
             indexTag.strip() for indexTag in self.indexTagsEntry.get().split(",")]
         self.currentRecipe["prepTime"] = self.prepTimeEntry.get()
         self.currentRecipe["waitTime"] = self.waitTimeEntry.get()
         self.currentRecipe["portionSize"] = self.portionEntry.get()
-        #self.updateCurrenRecipeIngredients()
-        #fileRecipes = open(self.recipeDataFileName, 'w+')
-        #json.dump(self.recipes, fileRecipes)
+        self.updateCurrenRecipeIngredients()
+        self.updateCurrentRecipeMethod()
+        self.recipes[self.currentRecipe["recipeTitle"]]=self.currentRecipe
+        fileRecipes = open(self.recipeDataFileName, 'w+')
+        json.dump(self.recipes, fileRecipes)
         self.updateInput()
 
     def updateCurrenRecipeIngredients(self):
-        ingredientList = [ x.strip() for x in  self.ingridienttextbox.get("1.0", END).split("\n")]
-        self.currentRecipe["ingredients"] = {}
-        if ":" not in ingredientList[0]:
-            self.currentRecipe
+        self.currentRecipe["ingredients"].clear()
         ingredientList = [
-            x.split("\n") for x in]
-        print(len(ingredientList))
-        if (len(ingredientList) % 2) != 0:
-            self.currentRecipe["ingredients"][''] = [
-                x for x in ingredientList[0] if len(x.strip()) != 0]
-            del ingredientList[0]
-        print(len(ingredientList))
-        while len(ingredientList) != 0:
-            print(self.currentRecipe["ingredients"])
-            key = ingredientList.pop(0)[0]
-            print(ingredientList)
-            values = ingredientList.pop(0)
-            self.currentRecipe["ingredients"][key] = [
-                x for x in values if len(x.strip()) != 0]
-        print(self.currentRecipe["ingredients"])
+            x.strip() for x in self.ingridienttextbox.get("1.0", END).split("\n")]
+        headerLines = [i for i, x in enumerate(ingredientList) if ":" in x]
+        headerLines = ["Start"]+headerLines+["End"]
+        for i, j in pairwise(headerLines):
+            ingredientsKey = ""
+            startIndex = 0
+            if i == "Start" and j == 0:
+                continue
+            if i != "Start":
+                ingredientsKey = ingredientList[i].replace(":","").strip()
+                startIndex = i+1
+            ingredientPart = ingredientList[startIndex:
+                                            j] if j != "End" else ingredientList[startIndex:]
+            self.currentRecipe["ingredients"][ingredientsKey] = [
+                x for x in ingredientPart if len(x) > 0]
         self.recipes[self.currentRecipe["recipeTitle"]] = self.currentRecipe
+
+    def updateCurrentRecipeMethod(self):
+        self.currentRecipe["cookingSteps"] = [
+            x.strip() for x in self.stepstextbox.get("1.0", END).split("\n\n") if len(x.strip())!=0]
+        
 
     def addExportRecipeButton(self):
         self.exportRecipeButton = Button(self.app,
@@ -290,7 +293,6 @@ class RecipeEditor:
     def getNewPicutre(self):
         filename = filedialog.askopenfilename(initialdir=os.getcwd(),
                                               title="Waehle Bild aus")
-        print(os.path.split(filename)[1])
         newFilePos = os.path.join(os.path.join(
             os.getcwd(), "pictures"), os.path.split(filename)[1])
         copyfile(filename, newFilePos)
