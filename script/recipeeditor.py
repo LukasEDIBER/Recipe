@@ -1,8 +1,6 @@
 from tkinter import *
 from tkinter.ttk import *
 import pickle as pk
-from .recipe import *
-from .recipeeditordata import RecipeEditorData as Data
 import os
 from PIL import ImageTk, Image
 from tkinter import filedialog
@@ -10,7 +8,7 @@ from shutil import copyfile
 from ttkthemes import ThemedStyle, ThemedTk
 import json
 from more_itertools import pairwise
-
+from .recipeeditordata import *
 
 class RecipeEditor:
 
@@ -30,34 +28,36 @@ class RecipeEditor:
                 self.recipes = json.load(recipeDataJson)
             self.currentRecipe = list(self.recipes.values())[0]
         except:
-            self.recipes = Data().getRecipeDataWithBasicRecipe()
+            self.recipes = getRecipeDataWithBasicRecipe()
             fileRecipes = open(self.recipeDataFileName, 'w+')
             json.dump(self.recipes, fileRecipes)
             self.currentRecipe = list(self.recipes.values())[0]
 
     def createLayout(self):
         self.addMenuBar()
-        self.addRecipeEditorLabel()
-        self.addRecipeNameRow()
-        self.addAuthorrow()
-        self.addIndexTagsRow()
-        self.addIngridientList()
+        self.setAppTitle()
+        self.addRecipeNameWidgets()
+        self.addAuthorWidgets()
+        self.addIndexTagsWidgets()
+        self.addIngridientWidgets()
         self.addSteps()
-        self.addCookParameter()
+        self.addCookParameterWidgets()
         self.addPictureShow()
         self.addSearchForNewPictureButton()
+        self.updateInput()
 
     def addMenuBar(self):
         self.menubar = Menu(self.app)
 
         self.filemenu = Menu(self.menubar, tearoff=0)
         self.filemenu.add_command(
-            label="Oeffne Rezept", command=self.addChooseRow)
+            label="Oeffne Rezept", command=self.chooseNewRecipeWindow)
         self.filemenu.add_command(
             label="Neues Rezept", command=self.addNewRecipe)
         self.filemenu.add_command(
             label="Rezept speichern", command=self.saveRecipe)
-        self.filemenu.add_command(label="Rezept loeschen")
+        self.filemenu.add_command(
+            label="Rezept loeschen", command=self.openDeleteRecipeWindow)
         self.filemenu.add_command(label="Exit", command=self.app.quit)
 
         self.exportmenu = Menu(self.menubar, tearoff=0)
@@ -68,37 +68,38 @@ class RecipeEditor:
         self.menubar.add_cascade(label="Export", menu=self.exportmenu)
         self.app.config(menu=self.menubar)
 
-    def addRecipeEditorLabel(self):
+    def setAppTitle(self):
         self.app.title("Recipe Editor")
 
-    def addChooseRow(self):
+    def chooseNewRecipeWindow(self):
         self.selectRecipeWindow = Toplevel(self.app)
-        self.addChooseLabel()
-        self.addDropdownRecipeList()
+        self.addChooseRecipeLabel(self.selectRecipeWindow)
+        self.addDropdownWidgetRecipeListTo(self.selectRecipeWindow)
         Button(self.selectRecipeWindow, text="Oeffne",
-               command=self.chooseNewRecipe).grid(column=0, row=1)
+               command=self.openNewRecipe).grid(column=0, row=1)
         Button(self.selectRecipeWindow, text="Cancel",
-               command=self.newRecipeWindow.destroy).grid(column=1, row=1)
+               command=self.selectRecipeWindow.destroy).grid(column=1, row=1)
         self.selectRecipeWindow.transient(self.app)
         self.selectRecipeWindow.grab_set()
         self.app.wait_window(self.selectRecipeWindow)
 
-    def chooseNewRecipe(self):
+    def openNewRecipe(self):
         newRecipeTitle = self.recipeListVariable.get()
-        self.currentRecipe = self.recipes.dict[newRecipeTitle]
+        self.currentRecipe = self.recipes[newRecipeTitle]
         self.updateInput()
         self.selectRecipeWindow.destroy()
 
-    def addChooseLabel(self):
-        chooseLabel = Label(self.selectRecipeWindow, text="Waehle Rezept aus:")
+    def addChooseRecipeLabel(self, windowWidget):
+        chooseLabel = Label(windowWidget, text="Waehle Rezept aus:")
         chooseLabel.grid(column=0, row=0)
 
-    def addDropdownRecipeList(self):
-        self.recipeListVariable = StringVar(self.selectRecipeWindow)
-        self.recipeListVariable.set(list(self.recipes.keys())[0])
+    def addDropdownWidgetRecipeListTo(self, windowWidget):
+        self.recipeTitles = list(self.recipes.keys())
+        self.recipeListVariable = StringVar(windowWidget)
+        self.recipeListVariable.set(self.currentRecipe["recipeTitle"])
 
         self.recipeDropdown = OptionMenu(
-            self.selectRecipeWindow, self.recipeListVariable, *self.recipes.list)
+            windowWidget, self.recipeListVariable, self.currentRecipe["recipeTitle"], *self.recipeTitles)
         self.recipeDropdown.grid(column=1, row=0, sticky="W")
 
     def addNewRecipe(self):
@@ -123,43 +124,98 @@ class RecipeEditor:
             self.currentRecipe = self.recipes[newRecipeTitle]
             self.updateInput()
             return
-        self.recipes[newRecipeTitle] = getEmptyRecipeDict()
+        self.recipes[newRecipeTitle] = getEmptyRecipeDict(newRecipeTitle)
         self.currentRecipe = self.recipes[newRecipeTitle]
         self.updateInput()
         self.newRecipeWindow.destroy()
 
     def updateInput(self):
-        return
+        self.updateRecipeName()
+        self.updateAuthorName()
+        self.updateIndexTags()
+        self.updateIngredients()
+        self.updateSteps()
+        self.updateCookParameters()
+        self.updatePicture()
 
-    def addRecipeNameRow(self):
+    def updateRecipeName(self):
+        self.recipeNameEntry.delete(0, 'end')
+        self.recipeNameEntry.insert(0, self.currentRecipe["recipeTitle"])
+
+    def updateAuthorName(self):
+        self.authorEntry.delete(0, 'end')
+        self.authorEntry.insert(0, self.currentRecipe["author"])
+
+    def updateIndexTags(self):
+        self.indexTagsEntry.delete(0, 'end')
+        self.indexTagsEntry.insert(
+            0, ",".join(self.currentRecipe["indexTags"]))
+
+    def updateIngredients(self):
+        self.ingridienttextbox.delete('1.0', END)
+        ingridientstring = ""
+        for ingreds in self.currentRecipe["ingredients"]:
+            if ingreds != "" and ingreds != None:
+                ingridientstring += ingreds+":\n"
+            for ingridient in self.currentRecipe["ingredients"][ingreds]:
+                ingridientstring += ingridient+"\n"
+        self.ingridienttextbox.insert(END, ingridientstring)
+
+    def updateSteps(self):
+        self.stepstextbox.delete('1.0', END)
+        stepsstring = ""
+        for step in self.currentRecipe["cookingSteps"]:
+            stepsstring += step+"\n\n"
+        self.stepstextbox.insert(END, stepsstring)
+
+    def updateCookParameters(self):
+        self.waitTimeEntry.delete(0, 'end')
+        self.prepTimeEntry.delete(0, 'end')
+        self.portionEntry.delete(0, 'end')
+        self.waitTimeEntry.insert(0, self.currentRecipe["waitTime"])
+        self.prepTimeEntry.insert(0, self.currentRecipe["prepTime"])
+        self.portionEntry.insert(0, self.currentRecipe["portionSize"])
+
+    def updatePicture(self):
+        pictureFilePath = os.path.join(
+            os.getcwd(), self.currentRecipe["pictureFile"])
+        if os.path.exists(pictureFilePath) and os.path.isfile(pictureFilePath):
+            self.updatePictureImg(pictureFilePath)
+            self.pictureLabel.config(image=self.img)
+        else:
+            self.pictureLabel.config(image='')
+
+    def updatePictureImg(self, pictureFilePath):
+        self.img1 = Image.open(pictureFilePath)
+        self.img1 = self.img1.resize((200, 200), Image.ANTIALIAS)
+        self.img = ImageTk.PhotoImage(self.img1)
+
+    def addRecipeNameWidgets(self):
         chooseLabel = Label(self.app, text=" Rezeptname:")
         chooseLabel.grid(column=0, row=self.maxRow, sticky="w")
         self.recipeNameEntry = Entry(self.app, width=50)
         self.recipeNameEntry.grid(
             column=1, row=self.maxRow, columnspan=4, sticky="w")
-        self.recipeNameEntry.insert(0, self.currentRecipe["recipeTitle"])
         self.maxRow += 1
 
-    def addAuthorrow(self):
-        chooseLabel = Label(self.app, text=" Autor:")
-        chooseLabel.grid(column=0, row=self.maxRow, sticky="w")
+    def addAuthorWidgets(self):
+        authorLabel = Label(self.app, text=" Autor:")
+        authorLabel.grid(column=0, row=self.maxRow, sticky="w")
         self.authorEntry = Entry(self.app, width=50)
         self.authorEntry.grid(column=1, row=self.maxRow,
                               columnspan=4, sticky="w")
-        self.authorEntry.insert(0, self.currentRecipe["author"])
         self.maxRow += 1
 
-    def addIndexTagsRow(self):
+    def addIndexTagsWidgets(self):
         chooseLabel = Label(self.app, text=" Stichwoerter:")
         chooseLabel.grid(column=0, row=self.maxRow, sticky="w")
         self.indexTagsEntry = Entry(self.app, width=50)
         self.indexTagsEntry.grid(
             column=1, row=self.maxRow, columnspan=4, sticky="w")
-        self.indexTagsEntry.insert(
-            0, ",".join(self.currentRecipe["indexTags"]))
+
         self.maxRow += 1
 
-    def addIngridientList(self):
+    def addIngridientWidgets(self):
         self.zutatenLabel = Label(self.app, text="Zutaten:")
         self.zutatenLabel.grid(column=0, row=self.maxRow, sticky="w")
         self.maxRow += 1
@@ -172,14 +228,6 @@ class RecipeEditor:
             column=0, row=self.maxRow, columnspan=3, rowspan=3)
         self.ingridienttextbox.config(
             yscrollcommand=self.ingridientscrollbar.set)
-        self.ingridienttextbox.delete('1.0', END)
-        ingridientstring = ""
-        for ingreds in self.currentRecipe["ingredients"]:
-            if ingreds != "" and ingreds != None:
-                ingridientstring += ingreds+":\n"
-            for ingridient in self.currentRecipe["ingredients"][ingreds]:
-                ingridientstring += ingridient+"\n"
-        self.ingridienttextbox.insert(END, ingridientstring)
         self.maxRow += 3
 
     def addSteps(self):
@@ -195,65 +243,9 @@ class RecipeEditor:
                                columnspan=3, rowspan=4)
         self.stepstextbox.config(
             yscrollcommand=self.stepsscrollbar.set)
-        self.stepstextbox.delete('1.0', END)
-        stepsstring = ""
-        for step in self.currentRecipe["cookingSteps"]:
-            stepsstring += step+"\n\n"
-        self.stepstextbox.insert(END, stepsstring)
         self.maxRow += 4
 
-    def saveRecipe(self):
-        del self.recipes[self.currentRecipe["recipeTitle"]]
-        self.currentRecipe["recipeTitle"] = self.recipeNameEntry.get()
-        self.currentRecipe["author"] = self.authorEntry.get()
-        self.currentRecipe["indexTags"] = [
-            indexTag.strip() for indexTag in self.indexTagsEntry.get().split(",")]
-        self.currentRecipe["prepTime"] = self.prepTimeEntry.get()
-        self.currentRecipe["waitTime"] = self.waitTimeEntry.get()
-        self.currentRecipe["portionSize"] = self.portionEntry.get()
-        self.updateCurrenRecipeIngredients()
-        self.updateCurrentRecipeMethod()
-        self.recipes[self.currentRecipe["recipeTitle"]]=self.currentRecipe
-        fileRecipes = open(self.recipeDataFileName, 'w+')
-        json.dump(self.recipes, fileRecipes)
-        self.updateInput()
-
-    def updateCurrenRecipeIngredients(self):
-        self.currentRecipe["ingredients"].clear()
-        ingredientList = [
-            x.strip() for x in self.ingridienttextbox.get("1.0", END).split("\n")]
-        headerLines = [i for i, x in enumerate(ingredientList) if ":" in x]
-        headerLines = ["Start"]+headerLines+["End"]
-        for i, j in pairwise(headerLines):
-            ingredientsKey = ""
-            startIndex = 0
-            if i == "Start" and j == 0:
-                continue
-            if i != "Start":
-                ingredientsKey = ingredientList[i].replace(":","").strip()
-                startIndex = i+1
-            ingredientPart = ingredientList[startIndex:
-                                            j] if j != "End" else ingredientList[startIndex:]
-            self.currentRecipe["ingredients"][ingredientsKey] = [
-                x for x in ingredientPart if len(x) > 0]
-        self.recipes[self.currentRecipe["recipeTitle"]] = self.currentRecipe
-
-    def updateCurrentRecipeMethod(self):
-        self.currentRecipe["cookingSteps"] = [
-            x.strip() for x in self.stepstextbox.get("1.0", END).split("\n\n") if len(x.strip())!=0]
-        
-
-    def addExportRecipeButton(self):
-        self.exportRecipeButton = Button(self.app,
-                                         text="Export Recipe",
-                                         command=self.exportAsPDFRecipe)
-        self.exportRecipeButton.grid(column=5, row=6, columnspan=1)
-
-    def exportAsPDFRecipe(self):
-        # Todo
-        return
-
-    def addCookParameter(self):
+    def addCookParameterWidgets(self):
         self.prepTimeLabel = Label(self.app, text="Zubereitungzeit (min): ")
         self.prepTimeLabel.grid(column=4, row=3, sticky='w', padx=5)
         self.waitTimeLabel = Label(self.app, text="Wartezeit (min): ")
@@ -262,27 +254,16 @@ class RecipeEditor:
         self.portionLabel.grid(column=4, row=5, sticky='w', padx=5)
         self.prepTimeEntry = Entry(self.app)
         self.prepTimeEntry.grid(column=5, row=3)
-        self.prepTimeEntry.insert(0, self.currentRecipe["prepTime"])
         self.waitTimeEntry = Entry(self.app)
         self.waitTimeEntry.grid(column=5, row=4)
-        self.waitTimeEntry.insert(0, self.currentRecipe["waitTime"])
         self.portionEntry = Entry(self.app)
         self.portionEntry.grid(column=5, row=5)
-        self.portionEntry.insert(0, self.currentRecipe["portionSize"])
 
     def addPictureShow(self):
-        pictureFilePath = os.path.join(
-            os.getcwd(), self.currentRecipe["pictureFile"])
-        self.setNewPictureImg(pictureFilePath)
-        self.pictureLabel = Label(self.app, image=self.img)
+        self.pictureLabel = Label(self.app)
         self.pictureLabel.grid(column=4, row=6,
                                columnspan=2, pady=30, padx=30, rowspan=4)
         self.maxRow += 1
-
-    def setNewPictureImg(self, pictureFilePath):
-        self.img1 = Image.open(pictureFilePath)
-        self.img1 = self.img1.resize((200, 200), Image.ANTIALIAS)
-        self.img = ImageTk.PhotoImage(self.img1)
 
     def addSearchForNewPictureButton(self):
         self.newPictureButton = Button(self.app,
@@ -295,7 +276,70 @@ class RecipeEditor:
                                               title="Waehle Bild aus")
         newFilePos = os.path.join(os.path.join(
             os.getcwd(), "pictures"), os.path.split(filename)[1])
-        copyfile(filename, newFilePos)
+        if not os.path.isfile(newFilePos):
+            copyfile(filename, newFilePos)
+        else:
+            print("Picture name already exists in database. Please change name!")
         self.currentRecipe["pictureFile"] = os.path.split(filename)[1]
-        self.setNewPictureImg(newFilePos)
-        self.pictureLabel.configure(image=self.img)
+        self.updatePicture()
+
+    def saveRecipe(self):
+        if self.currentRecipe["recipeTitle"] in self.recipes:
+            del self.recipes[self.currentRecipe["recipeTitle"]]
+        self.currentRecipe["recipeTitle"] = self.recipeNameEntry.get()
+        self.currentRecipe["author"] = self.authorEntry.get()
+        self.currentRecipe["indexTags"] = [
+            indexTag.strip() for indexTag in self.indexTagsEntry.get().split(",")]
+        self.currentRecipe["prepTime"] = self.prepTimeEntry.get()
+        self.currentRecipe["waitTime"] = self.waitTimeEntry.get()
+        self.currentRecipe["portionSize"] = self.portionEntry.get()
+        self.saveCurrenRecipeIngredients()
+        self.saveCurrentRecipeMethod()
+        self.recipes[self.currentRecipe["recipeTitle"]] = self.currentRecipe
+        fileRecipes = open(self.recipeDataFileName, 'w+')
+        json.dump(self.recipes, fileRecipes)
+        self.updateInput()
+
+    def saveCurrenRecipeIngredients(self):
+        self.currentRecipe["ingredients"].clear()
+        ingredientList = [
+            x.strip() for x in self.ingridienttextbox.get("1.0", END).split("\n")]
+        headerLines = [i for i, x in enumerate(ingredientList) if ":" in x]
+        headerLines = ["Start"]+headerLines+["End"]
+        for i, j in pairwise(headerLines):
+            ingredientsKey = ""
+            startIndex = 0
+            if i == "Start" and j == 0:
+                continue
+            if i != "Start":
+                ingredientsKey = ingredientList[i].replace(":", "").strip()
+                startIndex = i+1
+            ingredientPart = ingredientList[startIndex:
+                                            j] if j != "End" else ingredientList[startIndex:]
+            self.currentRecipe["ingredients"][ingredientsKey] = [
+                x for x in ingredientPart if len(x) > 0]
+        self.recipes[self.currentRecipe["recipeTitle"]] = self.currentRecipe
+
+    def saveCurrentRecipeMethod(self):
+        self.currentRecipe["cookingSteps"] = [
+            x.strip() for x in self.stepstextbox.get("1.0", END).split("\n\n") if len(x.strip()) != 0]
+
+    def openDeleteRecipeWindow(self):
+        self.selectRecipeWindow = Toplevel(self.app)
+        self.addChooseRecipeLabel(self.selectRecipeWindow)
+        self.addDropdownWidgetRecipeListTo(self.selectRecipeWindow)
+        Button(self.selectRecipeWindow, text="Delete",
+               command=self.deleteRecipe).grid(column=0, row=1)
+        Button(self.selectRecipeWindow, text="Cancel",
+               command=self.selectRecipeWindow.destroy).grid(column=1, row=1)
+        self.selectRecipeWindow.transient(self.app)
+        self.selectRecipeWindow.grab_set()
+        self.app.wait_window(self.selectRecipeWindow)
+
+    def deleteRecipe(self):
+        toDeleteRecipeTitle = self.recipeListVariable.get()
+        del self.recipes[toDeleteRecipeTitle]
+        if toDeleteRecipeTitle == self.currentRecipe["recipeTitle"]:
+            self.currentRecipe = list(self.recipes.values())[0]
+            self.updateInput()
+        self.selectRecipeWindow.destroy()

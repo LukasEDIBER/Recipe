@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from .recipe import Recipe
 from pathlib import Path
+
 
 class RecipeConverter:
     def __init__(self, recipe: dict, texFolder: str):
         self.recipe = recipe
-        self.recipeName=+recipe["recipeTitle"].lower().replace(" ", "")
+        self.recipeName = +recipe["recipeTitle"].lower().replace(" ", "")
         self.recipeFolder = texFolder
         print(self.recipeFolder)
 
@@ -27,7 +27,8 @@ class RecipeConverter:
 
     def writePrepInfo(self):
         prepInfo = "\\small{"
-        prepInfo += "Zubereitungszeit: "+str(self.recipe["prepTime"]) + " Minuten "
+        prepInfo += "Zubereitungszeit: " + \
+            str(self.recipe["prepTime"]) + " Minuten "
         prepInfo += "Wartezeit: "+str(self.recipe["waitTime"]) + " Minuten "
         prepInfo += "Portionen: "+str(self.recipe["portionSize"])
         prepInfo += "}\n"
@@ -56,6 +57,7 @@ class RecipeConverter:
             steps += "\n"+step+"\n"
         steps += "\\end{method}\n"
         self.texFile.write(steps)
+
 
 if __name__ == "__main__":
     recipe1 = Recipe()

@@ -1,12 +1,18 @@
-from .recipe import *
+def getEmptyRecipeDict(recipeTitle : str):
+    out={}
+    out["recipeTitle"] = recipeTitle
+    out["indexTags"] = []
+    out["prepTime"] = 0
+    out["waitTime"] = 0
+    out["portionSize"] = ""
+    out["ingredients"] = {}
+    out["pictureFile"] = ""
+    out["cookingSteps"] = []
+    out["author"] = ""
+    return out
 
-
-class RecipeEditorData:
-    dict = {"Empty Recipe": getEmptyRecipeDict()}
-
-    def getRecipeDataWithBasicRecipe(self):
-        recipe1 = getEmptyRecipeDict()
-        recipe1["recipeTitle"] = "Vegane cremige Brokkoli Sosse"
+def getRecipeDataWithBasicRecipe(self):
+        recipe1 = getEmptyRecipeDict("Vegane cremige Brokkoli Sosse")
         recipe1["indexTags"] = ["Vegan", "Brokkoli", "Pasta"]
         recipe1["author"] = "NA"
         recipe1["cookingSteps"] = ["Zwiebel, Kartoffel und Knoblauch klein schneiden und in Wasser kochen.", "Brokkoli nach einiger Zeit hinzugeben und garen.",
