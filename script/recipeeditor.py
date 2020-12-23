@@ -10,7 +10,7 @@ import json
 import shutil
 from more_itertools import pairwise
 import subprocess
-from .recipeeditordata import getRecipeDataWithBasicRecipe
+from .recipeeditordata import getRecipeDataWithBasicRecipe, getEmptyRecipeDict
 from .recipeconverter import RecipeConverter
 
 
@@ -54,13 +54,19 @@ class RecipeEditor:
 
         self.filemenu = Menu(self.menubar, tearoff=0)
         self.filemenu.add_command(
-            label="Oeffne Rezept", command=self.chooseNewRecipeWindow)
+            label="Oeffne Rezept", command=self.chooseNewRecipeWindow, accelerator="Ctrl+O")
+        self.app.bind(
+            "<Control-o>", lambda event: self.chooseNewRecipeWindow())
         self.filemenu.add_command(
-            label="Neues Rezept", command=self.addNewRecipe)
+            label="Neues Rezept", command=self.addNewRecipe, accelerator="Ctrl+N")
+        self.app.bind("<Control-n>", lambda event: self.addNewRecipe())
         self.filemenu.add_command(
-            label="Rezept speichern", command=self.saveRecipe)
+            label="Rezept speichern", command=self.saveRecipe, accelerator="Ctrl+S")
+        self.app.bind("<Control-s>", lambda event: self.saveRecipe())
         self.filemenu.add_command(
-            label="Rezept loeschen", command=self.openDeleteRecipeWindow)
+            label="Rezept loeschen", command=self.openDeleteRecipeWindow, accelerator="Ctrl+D")
+        self.app.bind(
+            "<Control-d>", lambda event: self.openDeleteRecipeWindow())
         self.filemenu.add_command(label="Exit", command=self.app.quit)
 
         self.exportmenu = Menu(self.menubar, tearoff=0)
