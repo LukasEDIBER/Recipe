@@ -7,7 +7,9 @@ from tkinter import filedialog
 from shutil import copyfile
 from ttkthemes import ThemedStyle, ThemedTk
 import json
+import shutil
 from more_itertools import pairwise
+import subprocess
 from .recipeeditordata import *
 from .recipeconverter import RecipeConverter
 class RecipeEditor:
@@ -29,8 +31,7 @@ class RecipeEditor:
             self.currentRecipe = list(self.recipes.values())[0]
         except:
             self.recipes = getRecipeDataWithBasicRecipe()
-            fileRecipes = open(self.recipeDataFileName, 'w+')
-            json.dump(self.recipes, fileRecipes)
+            self.saveToJson()
             self.currentRecipe = list(self.recipes.values())[0]
 
     def createLayout(self):
@@ -69,22 +70,25 @@ class RecipeEditor:
         self.app.config(menu=self.menubar)
 
     def exportSingleLatex(self):
-        pdfFileName=filedialog.asksaveasfilename(initialdir = "/",title = "Select file",filetypes = [("pdf files","*.pdf")])
-        print(pdfFileName)
-        texFolderName=self.currentRecipe["recipeTitle"].lower().replace(" ", "")
-        
-        latexFolder=os.path.join(os.getcwd(),"tex",texFolderName)
-        if not os.path.exists(latexFolder):
-            os.makedirs(latexFolder)
-        oldPicturePos=os.path.join(os.getcwd(),self.currentRecipe["pictureFile"])
-        newPicturePos = os.path.join(latexFolder,os.path.split(oldPicturePos)[1])
-        if not os.path.isfile(newPicturePos):
-            copyfile(oldPicturePos, newPicturePos)
-        print(latexFolder)
-        recipeToWrite=self.currentRecipe
-        recipeToWrite["pictureFile"]=newPicturePos
-        texfile=RecipeConverter(latexFolder).writeSingleRecipeLatexFile(self.currentRecipe)
-        print(texfile)
+        try:
+            pdfFileDirectory=filedialog.askdirectory(initialdir = "/",title = "Waehle Ordner")
+            texFolderName=self.currentRecipe["recipeTitle"].lower().replace(" ", "")
+            
+            latexFolder=os.path.join(os.getcwd(),"tex",texFolderName)
+            if not os.path.exists(latexFolder):
+                os.makedirs(latexFolder)
+            oldPicturePos=os.path.join(os.getcwd(),self.currentRecipe["pictureFile"])
+            newPicturePos = os.path.join(latexFolder,os.path.split(oldPicturePos)[1])
+            if not os.path.isfile(newPicturePos):
+                copyfile(oldPicturePos, newPicturePos)
+            recipeToWrite=self.currentRecipe.copy()
+            recipeToWrite["pictureFile"]=newPicturePos.replace("\\","/")
+            texfile=RecipeConverter(latexFolder).writeSingleRecipeLatexFile(recipeToWrite)
+            subprocess.run(["pdflatex", texfile,"-output-directory="+os.path.split(texfile)[0]])
+            copyfile(texfile.replace(".tex",".pdf"),os.path.join(pdfFileDirectory,os.path.split(texfile)[1].replace(".tex",".pdf")))
+            shutil.rmtree(latexFolder, ignore_errors=True)
+        except:
+            print("Could not save new folder.")
 
     def setAppTitle(self):
         self.app.title("Recipe Editor")
@@ -112,7 +116,7 @@ class RecipeEditor:
         chooseLabel.grid(column=0, row=0)
 
     def addDropdownWidgetRecipeListTo(self, windowWidget):
-        self.recipeTitles = list(self.recipes.keys())
+        self.recipeTitles = sorted(list(self.recipes.keys()))
         self.recipeListVariable = StringVar(windowWidget)
         self.recipeListVariable.set(self.currentRecipe["recipeTitle"])
 
@@ -314,9 +318,12 @@ class RecipeEditor:
         self.saveCurrenRecipeIngredients()
         self.saveCurrentRecipeMethod()
         self.recipes[self.currentRecipe["recipeTitle"]] = self.currentRecipe
+        self.saveToJson()
+        self.updateInput()
+
+    def saveToJson(self):
         fileRecipes = open(self.recipeDataFileName, 'w+')
         json.dump(self.recipes, fileRecipes)
-        self.updateInput()
 
     def saveCurrenRecipeIngredients(self):
         self.currentRecipe["ingredients"].clear()
@@ -360,4 +367,5 @@ class RecipeEditor:
         if toDeleteRecipeTitle == self.currentRecipe["recipeTitle"]:
             self.currentRecipe = list(self.recipes.values())[0]
             self.updateInput()
+        self.saveToJson()
         self.selectRecipeWindow.destroy()
