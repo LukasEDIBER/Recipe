@@ -9,7 +9,7 @@ from ttkthemes import ThemedStyle, ThemedTk
 import json
 from more_itertools import pairwise
 from .recipeeditordata import *
-
+from .recipeconverter import RecipeConverter
 class RecipeEditor:
 
     recipeDataFileName = "recipeData.json"
@@ -61,12 +61,30 @@ class RecipeEditor:
         self.filemenu.add_command(label="Exit", command=self.app.quit)
 
         self.exportmenu = Menu(self.menubar, tearoff=0)
-        self.exportmenu.add_command(label="Export Rezept einzeln")
+        self.exportmenu.add_command(label="Export Rezept einzeln", command=self.exportSingleLatex)
         self.exportmenu.add_command(label="Export Rezeptbuch")
 
         self.menubar.add_cascade(label="Rezept", menu=self.filemenu)
         self.menubar.add_cascade(label="Export", menu=self.exportmenu)
         self.app.config(menu=self.menubar)
+
+    def exportSingleLatex(self):
+        pdfFileName=filedialog.asksaveasfilename(initialdir = "/",title = "Select file",filetypes = [("pdf files","*.pdf")])
+        print(pdfFileName)
+        texFolderName=self.currentRecipe["recipeTitle"].lower().replace(" ", "")
+        
+        latexFolder=os.path.join(os.getcwd(),"tex",texFolderName)
+        if not os.path.exists(latexFolder):
+            os.makedirs(latexFolder)
+        oldPicturePos=os.path.join(os.getcwd(),self.currentRecipe["pictureFile"])
+        newPicturePos = os.path.join(latexFolder,os.path.split(oldPicturePos)[1])
+        if not os.path.isfile(newPicturePos):
+            copyfile(oldPicturePos, newPicturePos)
+        print(latexFolder)
+        recipeToWrite=self.currentRecipe
+        recipeToWrite["pictureFile"]=newPicturePos
+        texfile=RecipeConverter(latexFolder).writeSingleRecipeLatexFile(self.currentRecipe)
+        print(texfile)
 
     def setAppTitle(self):
         self.app.title("Recipe Editor")
@@ -280,7 +298,7 @@ class RecipeEditor:
             copyfile(filename, newFilePos)
         else:
             print("Picture name already exists in database. Please change name!")
-        self.currentRecipe["pictureFile"] = os.path.split(filename)[1]
+        self.currentRecipe["pictureFile"] = os.path.join("pictures",os.path.split(filename)[1])
         self.updatePicture()
 
     def saveRecipe(self):

@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
+import os
 
 
 class RecipeConverter:
-    def __init__(self, recipe: dict, texFolder: str):
-        self.recipe = recipe
-        self.recipeName = +recipe["recipeTitle"].lower().replace(" ", "")
+    def __init__(self, texFolder: str):
+
         self.recipeFolder = texFolder
         print(self.recipeFolder)
+
+    def setRecipe(self, recipe: dict):
+        self.recipe = recipe
+        self.recipeName = recipe["recipeTitle"].lower().replace(" ", "")
 
     def writeLatexFile(self):
         with open(self.recipeFolder+'/'+self.recipeName+'.tex', 'w+') as self.texFile:
@@ -15,6 +19,36 @@ class RecipeConverter:
             self.writePrepInfo()
             self.writeIngrendientsAndPicture()
             self.writeSteps()
+
+    def writeSingleRecipeLatexFile(self, recipe: dict):
+        self.setRecipe(recipe)
+        with open(self.recipeFolder+'/'+self.recipeName+'.tex', 'w+') as self.texFile:
+            self.writeDocumentClass()
+            self.writeStyleFile()
+            self.writeDocumentBegin()
+            self.writeRecipeHeader()
+            self.writePrepInfo()
+            self.writeIngrendientsAndPicture()
+            self.writeSteps()
+            self.writeDocumentEnd()
+        return self.recipeFolder+'/'+self.recipeName+'.tex'
+
+    def writeDocumentClass(self):
+        self.texFile.write("\\documentclass{article}\n")
+
+    def writeStyleFile(self):
+        print(os.getcwd())
+        with open(os.path.join(os.getcwd(),"tex","stylefile.tex"), 'r+') as file:
+            styleString = file.read()
+            self.texFile.write(styleString)
+            self.texFile.write("\n")
+
+    def writeDocumentBegin(self):
+        self.texFile.write("\\begin{document}\n")
+        self.texFile.write("\\setcounter{secnumdepth}{-2}")
+
+    def writeDocumentEnd(self):
+        self.texFile.write("\\end{document}\n")
 
     def writeRecipeHeader(self):
         recipeHeader = "\\recipe["
