@@ -14,7 +14,7 @@ class RecipeConverter:
         self.recipeName = recipe["recipeTitle"].lower().replace(" ", "")
 
     def writeLatexFile(self):
-        with open(os.path.join(self.recipeFolder,self.recipeName+'.tex'), 'w+') as self.texFile:
+        with open(os.path.join(self.recipeFolder, self.recipeName+'.tex'), 'w+') as self.texFile:
             self.writeRecipeHeader()
             self.writePrepInfo()
             self.writeIngrendientsAndPicture()
@@ -22,7 +22,7 @@ class RecipeConverter:
 
     def writeSingleRecipeLatexFile(self, recipe: dict):
         self.setRecipe(recipe)
-        with open(os.path.join(self.recipeFolder,self.recipeName+'.tex'), 'w+') as self.texFile:
+        with open(os.path.join(self.recipeFolder, self.recipeName+'.tex'), 'w+') as self.texFile:
             self.writeDocumentClass()
             self.writeStyleFile()
             self.writeDocumentBegin()
@@ -31,14 +31,14 @@ class RecipeConverter:
             self.writeIngrendientsAndPicture()
             self.writeSteps()
             self.writeDocumentEnd()
-        return os.path.join(self.recipeFolder,self.recipeName+'.tex')
+        return os.path.join(self.recipeFolder, self.recipeName+'.tex')
 
     def writeDocumentClass(self):
         self.texFile.write("\\documentclass{article}\n")
 
     def writeStyleFile(self):
         print(os.getcwd())
-        with open(os.path.join(os.getcwd(),"tex","stylefile.tex"), 'r+') as file:
+        with open(os.path.join(os.getcwd(), "tex", "stylefile.tex"), 'r+') as file:
             styleString = file.read()
             self.texFile.write(styleString)
             self.texFile.write("\n")

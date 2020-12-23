@@ -12,6 +12,8 @@ from more_itertools import pairwise
 import subprocess
 from .recipeeditordata import *
 from .recipeconverter import RecipeConverter
+
+
 class RecipeEditor:
 
     recipeDataFileName = "recipeData.json"
@@ -62,7 +64,8 @@ class RecipeEditor:
         self.filemenu.add_command(label="Exit", command=self.app.quit)
 
         self.exportmenu = Menu(self.menubar, tearoff=0)
-        self.exportmenu.add_command(label="Export Rezept einzeln", command=self.exportSingleLatex)
+        self.exportmenu.add_command(
+            label="Export Rezept einzeln", command=self.exportSingleLatex)
         self.exportmenu.add_command(label="Export Rezeptbuch")
 
         self.menubar.add_cascade(label="Rezept", menu=self.filemenu)
@@ -71,21 +74,27 @@ class RecipeEditor:
 
     def exportSingleLatex(self):
         try:
-            pdfFileDirectory=filedialog.askdirectory(initialdir = "/",title = "Waehle Ordner")
-            texFolderName=self.currentRecipe["recipeTitle"].lower().replace(" ", "")
-            
-            latexFolder=os.path.join(os.getcwd(),"tex",texFolderName)
+            pdfFileDirectory = filedialog.askdirectory(
+                initialdir="/", title="Waehle Ordner")
+            texFolderName = self.currentRecipe["recipeTitle"].lower().replace(
+                " ", "")
+            latexFolder = os.path.join(os.getcwd(), "tex", texFolderName)
             if not os.path.exists(latexFolder):
                 os.makedirs(latexFolder)
-            oldPicturePos=os.path.join(os.getcwd(),self.currentRecipe["pictureFile"])
-            newPicturePos = os.path.join(latexFolder,os.path.split(oldPicturePos)[1])
+            oldPicturePos = os.path.join(
+                os.getcwd(), self.currentRecipe["pictureFile"])
+            newPicturePos = os.path.join(
+                latexFolder, os.path.split(oldPicturePos)[1])
             if not os.path.isfile(newPicturePos):
                 copyfile(oldPicturePos, newPicturePos)
-            recipeToWrite=self.currentRecipe.copy()
-            recipeToWrite["pictureFile"]=newPicturePos.replace("\\","/")
-            texfile=RecipeConverter(latexFolder).writeSingleRecipeLatexFile(recipeToWrite)
-            subprocess.run(["pdflatex", texfile,"-output-directory="+os.path.split(texfile)[0]])
-            copyfile(texfile.replace(".tex",".pdf"),os.path.join(pdfFileDirectory,os.path.split(texfile)[1].replace(".tex",".pdf")))
+            recipeToWrite = self.currentRecipe.copy()
+            recipeToWrite["pictureFile"] = newPicturePos.replace("\\", "/")
+            texfile = RecipeConverter(
+                latexFolder).writeSingleRecipeLatexFile(recipeToWrite)
+            subprocess.run(
+                ["pdflatex", texfile, "-output-directory="+os.path.split(texfile)[0]])
+            copyfile(texfile.replace(".tex", ".pdf"), os.path.join(
+                pdfFileDirectory, os.path.split(texfile)[1].replace(".tex", ".pdf")))
             shutil.rmtree(latexFolder, ignore_errors=True)
         except:
             print("Could not save new folder.")
@@ -302,7 +311,8 @@ class RecipeEditor:
             copyfile(filename, newFilePos)
         else:
             print("Picture name already exists in database. Please change name!")
-        self.currentRecipe["pictureFile"] = os.path.join("pictures",os.path.split(filename)[1])
+        self.currentRecipe["pictureFile"] = os.path.join(
+            "pictures", os.path.split(filename)[1])
         self.updatePicture()
 
     def saveRecipe(self):
