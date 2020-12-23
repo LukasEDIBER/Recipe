@@ -10,7 +10,7 @@ import json
 import shutil
 from more_itertools import pairwise
 import subprocess
-from .recipeeditordata import *
+from .recipeeditordata import getRecipeDataWithBasicRecipe
 from .recipeconverter import RecipeConverter
 
 

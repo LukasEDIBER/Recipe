@@ -91,18 +91,3 @@ class RecipeConverter:
             steps += "\n"+step+"\n"
         steps += "\\end{method}\n"
         self.texFile.write(steps)
-
-
-if __name__ == "__main__":
-    recipe1 = Recipe()
-    recipe1.recipeTitle = "Vegan Text"
-    recipe1.indexTags = ["Test", "Best"]
-    recipe1.author = "Lukas"
-    recipe1.cookingSteps = ["1", "2"]
-    recipe1.waitTime = 60
-    recipe1.prepTime = 30
-    recipe1.ingredients = {"Teig": ["100g Mehr", "200g More"]}
-    recipe1.portionSize = "30 Kekse"
-    recipe1.pictureFile = "vegantext.jpg"
-    converter = RecipeConverter(recipe1)
-    converter.writeLatexFile()
