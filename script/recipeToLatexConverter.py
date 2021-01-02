@@ -112,7 +112,7 @@ class RecipeToLatexConverter:
                 ingreds += "\\ingredients["+ingredsKey+":]\n"
             for ingrediant in self.recipe["ingredients"][ingredsKey]:
                 ingreds += ingrediant+"\n"
-        if self.recipe["pictureFile"] != None or self.recipe["pictureFile"] != "":
+        if self.recipe["pictureFile"] != None and self.recipe["pictureFile"] != "":
             ingreds += "\\columnbreak\n"
             ingreds += "\\showit[1in]{"+self.recipe["pictureFile"]+"}\n"
         ingreds += "\\end{ingreds}\n"

@@ -53,17 +53,17 @@ class RecipeEditor:
 
         self.filemenu = Menu(self.menubar, tearoff=0)
         self.filemenu.add_command(
-            label="Oeffne Rezept", command=self.chooseNewRecipeWindow, accelerator="Ctrl+O")
+            label="Öffne Rezept", command=self.chooseNewRecipeWindow, accelerator="Ctrl+O")
         self.app.bind(
             "<Control-o>", lambda event: self.chooseNewRecipeWindow())
         self.filemenu.add_command(
-            label="Neues Rezept", command=self.addNewRecipe, accelerator="Ctrl+N")
+            label="Neüs Rezept", command=self.addNewRecipe, accelerator="Ctrl+N")
         self.app.bind("<Control-n>", lambda event: self.addNewRecipe())
         self.filemenu.add_command(
             label="Rezept speichern", command=self.saveRecipe, accelerator="Ctrl+S")
         self.app.bind("<Control-s>", lambda event: self.saveRecipe())
         self.filemenu.add_command(
-            label="Rezept loeschen", command=self.openDeleteRecipeWindow, accelerator="Ctrl+D")
+            label="Rezept löschen", command=self.openDeleteRecipeWindow, accelerator="Ctrl+D")
         self.app.bind(
             "<Control-d>", lambda event: self.openDeleteRecipeWindow())
         self.filemenu.add_command(label="Exit", command=self.app.quit)
@@ -78,6 +78,7 @@ class RecipeEditor:
         self.app.config(menu=self.menubar)
 
     def exportSingleLatex(self):
+        print(self.currentRecipe["pictureFile"])
         RecipeExport().exportSingleRecipe(self.currentRecipe)
 
     def setAppTitle(self):
@@ -87,7 +88,7 @@ class RecipeEditor:
         self.selectRecipeWindow = Toplevel(self.app)
         self.addChooseRecipeLabel(self.selectRecipeWindow)
         self.addDropdownWidgetRecipeListTo(self.selectRecipeWindow)
-        Button(self.selectRecipeWindow, text="Oeffne",
+        Button(self.selectRecipeWindow, text="Öffne",
                command=self.openNewRecipe).grid(column=0, row=1)
         Button(self.selectRecipeWindow, text="Cancel",
                command=self.selectRecipeWindow.destroy).grid(column=1, row=1)
@@ -102,7 +103,7 @@ class RecipeEditor:
         self.selectRecipeWindow.destroy()
 
     def addChooseRecipeLabel(self, windowWidget):
-        chooseLabel = Label(windowWidget, text="Waehle Rezept aus:")
+        chooseLabel = Label(windowWidget, text="Wähle Rezept aus:")
         chooseLabel.grid(column=0, row=0)
 
     def addDropdownWidgetRecipeListTo(self, windowWidget):
@@ -219,7 +220,7 @@ class RecipeEditor:
         self.maxRow += 1
 
     def addIndexTagsWidgets(self):
-        chooseLabel = Label(self.app, text=" Stichwoerter:")
+        chooseLabel = Label(self.app, text=" Stichwörter:")
         chooseLabel.grid(column=0, row=self.maxRow, sticky="w")
         self.indexTagsEntry = Entry(self.app, width=50)
         self.indexTagsEntry.grid(
@@ -285,7 +286,7 @@ class RecipeEditor:
 
     def getNewPicutre(self):
         filename = filedialog.askopenfilename(initialdir=os.getcwd(),
-                                              title="Waehle Bild aus")
+                                              title="Wähle Bild aus")
         newFilePos = os.path.join(os.path.join(
             os.getcwd(), "pictures"), os.path.split(filename)[1])
         if not os.path.isfile(newFilePos):

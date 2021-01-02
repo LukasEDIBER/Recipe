@@ -15,7 +15,6 @@ class RecipeExport:
         self.setPdfFolderLocation()
         self.createTexFolder(self.recipeToWrite["recipeTitle"])
         self.copyPictureToTexFolder()
-
         self.texfile = RecipeToLatexConverter(
             self.latexFolder).writeSingleRecipeLatexFile(self.recipeToWrite)
         self.runLatex()
@@ -24,7 +23,7 @@ class RecipeExport:
 
     def setPdfFolderLocation(self):
         self.pdfFileDirectory = filedialog.askdirectory(
-            initialdir="/", title="Waehle Ordner")
+            initialdir="/", title="Wähle Ordner")
 
     def createTexFolder(self, folderName: str):
         texFolderName = "temp"
@@ -39,7 +38,7 @@ class RecipeExport:
 
     def copyPictureToTexFolder(self):
         newPicturePos = ""
-        if self.recipeToWrite["pictureFile"] != "":
+        if self.recipeToWrite["pictureFile"] != "" or self.recipeToWrite["pictureFile"] != None:
             oldPicturePos = os.path.join(
                 os.getcwd(), self.recipeToWrite["pictureFile"])
             newPicturePos = os.path.join(
