@@ -4,8 +4,8 @@ def getEmptyRecipeDict(recipeTitle: str):
     out = {}
     out["recipeTitle"] = recipeTitle
     out["indexTags"] = []
-    out["prepTime"] = 0
-    out["waitTime"] = 0
+    out["prepTime"] = ""
+    out["waitTime"] = ""
     out["portionSize"] = ""
     out["ingredients"] = {}
     out["pictureFile"] = ""
@@ -20,8 +20,8 @@ def getRecipeDataWithBasicRecipe(self):
     recipe1["author"] = "NA"
     recipe1["cookingSteps"] = ["Zwiebel, Kartoffel und Knoblauch klein schneiden und in Wasser kochen.", "Brokkoli nach einiger Zeit hinzugeben und garen.",
                                "Abseihen, mit Wasser, Gemuesebruehe und Hanfsamen mixen und aufkochen.", "Abschmecken und mit Pasta ihrer Wahl essen."]
-    recipe1["waitTime"] = 0
-    recipe1["prepTime"] = 30
+    recipe1["waitTime"] = "0"
+    recipe1["prepTime"] = "30"
     recipe1["ingredients"] = {"": ["250g Brokkoli", "100g Zwiebel", "100g Kartoffel",
                                    "2 Knoblauchzehen", "30g Hanfsamen", "350 ml Wasser", "1 El Hefeflocken", "Gemuesebruehenpulver"]}
     recipe1["portionSize"] = "2 Portionen"

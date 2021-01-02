@@ -27,10 +27,10 @@ class RecipeExport:
             initialdir="/", title="Waehle Ordner")
 
     def createTexFolder(self, folderName: str):
-        texFolderName = folderName.lower().replace(
-            " ", "")
+        texFolderName = "temp"
         self.latexFolder = os.path.join(os.getcwd(), "tex", texFolderName)
         try:
+            shutil.rmtree(self.latexFolder, ignore_errors=True)
             if not os.path.exists(self.latexFolder):
                 os.makedirs(self.latexFolder)
         except Exception as e:

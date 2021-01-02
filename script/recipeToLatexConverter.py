@@ -4,6 +4,10 @@ import os
 
 
 class RecipeToLatexConverter:
+
+    umlautDict = {"Ä": "{\"A}", "Ö": "{\"O}", "Ü": "{\"U}",
+                  "ä": "{\"a}", "ö": "{\"o}", "ü": "{\"u}", "ß": "{\ss}", "&": "\&"}
+
     def __init__(self, texFolder: str):
 
         self.recipeFolder = texFolder
@@ -12,6 +16,35 @@ class RecipeToLatexConverter:
     def setRecipe(self, recipe: dict):
         self.recipe = recipe
         self.recipeName = recipe["recipeTitle"].lower().replace(" ", "")
+        self.convertUmlaute()
+
+    def convertUmlauteForLatexString(self, inputString: str):
+        for umlaut in self.umlautDict:
+            inputString = inputString.replace(umlaut, self.umlautDict[umlaut])
+        return inputString
+
+    def convertUmlaute(self):
+        for key in ["recipeTitle", "portionSize", "author"]:
+            self.recipe[key] = self.convertUmlauteForLatexString(
+                self.recipe[key])
+        newTags = []
+        for tag in self.recipe["indexTags"]:
+            newTags.append(self.convertUmlauteForLatexString(tag))
+        self.recipe["indexTags"] = newTags
+        newIngred={}
+        for ingredHeader in self.recipe["ingredients"]:
+            newIngredHeader=self.convertUmlauteForLatexString(ingredHeader)
+            print(newIngredHeader)
+            newIngred[newIngredHeader]=[]
+            for ingreds in self.recipe["ingredients"][ingredHeader]:
+                print(ingreds)
+                newIngred[newIngredHeader].append(self.convertUmlauteForLatexString(ingreds))
+        self.recipe["ingredients"]=newIngred
+        newCookingSteps = []
+        for cookingStep in self.recipe["cookingSteps"]:
+            newCookingSteps.append(self.convertUmlauteForLatexString(cookingStep))
+        self.recipe["cookingSteps"]=newCookingSteps
+
 
     def writeLatexFile(self):
         with open(os.path.join(self.recipeFolder, self.recipeName+'.tex'), 'w+') as self.texFile:
@@ -79,7 +112,7 @@ class RecipeToLatexConverter:
                 ingreds += "\\ingredients["+ingredsKey+":]\n"
             for ingrediant in self.recipe["ingredients"][ingredsKey]:
                 ingreds += ingrediant+"\n"
-        if self.recipe["pictureFile"] != None:
+        if self.recipe["pictureFile"] != None or self.recipe["pictureFile"] != "":
             ingreds += "\\columnbreak\n"
             ingreds += "\\showit[1in]{"+self.recipe["pictureFile"]+"}\n"
         ingreds += "\\end{ingreds}\n"
