@@ -4,15 +4,14 @@ import pickle as pk
 import os
 from PIL import ImageTk, Image
 from tkinter import filedialog
-from shutil import copyfile
 from ttkthemes import ThemedStyle, ThemedTk
 import json
 import shutil
-from more_itertools import pairwise
+from shutil import copyfile
 import subprocess
-from .recipeeditordata import getRecipeDataWithBasicRecipe, getEmptyRecipeDict
-from .recipeconverter import RecipeConverter
-
+from more_itertools import pairwise
+from .recipe import getRecipeDataWithBasicRecipe, getEmptyRecipeDict
+from .recipeexporter import RecipeExport
 
 class RecipeEditor:
 
@@ -79,31 +78,7 @@ class RecipeEditor:
         self.app.config(menu=self.menubar)
 
     def exportSingleLatex(self):
-        try:
-            pdfFileDirectory = filedialog.askdirectory(
-                initialdir="/", title="Waehle Ordner")
-            texFolderName = self.currentRecipe["recipeTitle"].lower().replace(
-                " ", "")
-            latexFolder = os.path.join(os.getcwd(), "tex", texFolderName)
-            if not os.path.exists(latexFolder):
-                os.makedirs(latexFolder)
-            oldPicturePos = os.path.join(
-                os.getcwd(), self.currentRecipe["pictureFile"])
-            newPicturePos = os.path.join(
-                latexFolder, os.path.split(oldPicturePos)[1])
-            if not os.path.isfile(newPicturePos):
-                copyfile(oldPicturePos, newPicturePos)
-            recipeToWrite = self.currentRecipe.copy()
-            recipeToWrite["pictureFile"] = newPicturePos.replace("\\", "/")
-            texfile = RecipeConverter(
-                latexFolder).writeSingleRecipeLatexFile(recipeToWrite)
-            subprocess.run(
-                ["pdflatex", texfile, "-output-directory="+os.path.split(texfile)[0]])
-            copyfile(texfile.replace(".tex", ".pdf"), os.path.join(
-                pdfFileDirectory, os.path.split(texfile)[1].replace(".tex", ".pdf")))
-            shutil.rmtree(latexFolder, ignore_errors=True)
-        except:
-            print("Could not save new folder.")
+        RecipeExport().exportSingleRecipe(self.currentRecipe)
 
     def setAppTitle(self):
         self.app.title("Recipe Editor")

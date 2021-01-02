@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 
 
-class RecipeConverter:
+class RecipeToLatexConverter:
     def __init__(self, texFolder: str):
 
         self.recipeFolder = texFolder
