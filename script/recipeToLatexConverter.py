@@ -8,7 +8,7 @@ class RecipeToLatexConverter:
     umlautDict = {"Ä": "{\"A}", "Ö": "{\"O}", "Ü": "{\"U}",
                   "ä": "{\"a}", "ö": "{\"o}", "ü": "{\"u}",
                   "ß": "{\ss}", "&": "\&", "°": "$^{\circ}$",
-                  "º": "$^{\circ}$"}
+                  "º": "$^{\circ}$", "á":"\' a"}
 
     def __init__(self, texFolder: str):
 
@@ -97,10 +97,10 @@ class RecipeToLatexConverter:
 
     def writePrepInfo(self):
         prepInfo = "\\footnotesize{"
+        prepInfo += ""+str(self.recipe["portionSize"])+", "
         prepInfo += "Zubereitungszeit: " + \
-            str(self.recipe["prepTime"]) + " Minuten "
+            str(self.recipe["prepTime"]) + " Minuten, "
         prepInfo += "Wartezeit: "+str(self.recipe["waitTime"]) + " Minuten "
-        prepInfo += "Portionen: "+str(self.recipe["portionSize"])
         prepInfo += "}\n\\small"
         self.texFile.write(prepInfo)
         self.writeEmptyLine()
