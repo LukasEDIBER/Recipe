@@ -6,7 +6,9 @@ import os
 class RecipeToLatexConverter:
 
     umlautDict = {"Ä": "{\"A}", "Ö": "{\"O}", "Ü": "{\"U}",
-                  "ä": "{\"a}", "ö": "{\"o}", "ü": "{\"u}", "ß": "{\ss}", "&": "\&"}
+                  "ä": "{\"a}", "ö": "{\"o}", "ü": "{\"u}",
+                  "ß": "{\ss}", "&": "\&", "°": "$^{\circ}$",
+                  "º": "$^{\circ}$"}
 
     def __init__(self, texFolder: str):
 
@@ -31,20 +33,21 @@ class RecipeToLatexConverter:
         for tag in self.recipe["indexTags"]:
             newTags.append(self.convertUmlauteForLatexString(tag))
         self.recipe["indexTags"] = newTags
-        newIngred={}
+        newIngred = {}
         for ingredHeader in self.recipe["ingredients"]:
-            newIngredHeader=self.convertUmlauteForLatexString(ingredHeader)
+            newIngredHeader = self.convertUmlauteForLatexString(ingredHeader)
             print(newIngredHeader)
-            newIngred[newIngredHeader]=[]
+            newIngred[newIngredHeader] = []
             for ingreds in self.recipe["ingredients"][ingredHeader]:
                 print(ingreds)
-                newIngred[newIngredHeader].append(self.convertUmlauteForLatexString(ingreds))
-        self.recipe["ingredients"]=newIngred
+                newIngred[newIngredHeader].append(
+                    self.convertUmlauteForLatexString(ingreds))
+        self.recipe["ingredients"] = newIngred
         newCookingSteps = []
         for cookingStep in self.recipe["cookingSteps"]:
-            newCookingSteps.append(self.convertUmlauteForLatexString(cookingStep))
-        self.recipe["cookingSteps"]=newCookingSteps
-
+            newCookingSteps.append(
+                self.convertUmlauteForLatexString(cookingStep))
+        self.recipe["cookingSteps"] = newCookingSteps
 
     def writeLatexFile(self):
         with open(os.path.join(self.recipeFolder, self.recipeName+'.tex'), 'w+') as self.texFile:
@@ -93,12 +96,12 @@ class RecipeToLatexConverter:
         self.texFile.write(recipeHeader)
 
     def writePrepInfo(self):
-        prepInfo = "\\small{"
+        prepInfo = "\\footnotesize{"
         prepInfo += "Zubereitungszeit: " + \
             str(self.recipe["prepTime"]) + " Minuten "
         prepInfo += "Wartezeit: "+str(self.recipe["waitTime"]) + " Minuten "
         prepInfo += "Portionen: "+str(self.recipe["portionSize"])
-        prepInfo += "}\n"
+        prepInfo += "}\n\\small"
         self.texFile.write(prepInfo)
         self.writeEmptyLine()
 

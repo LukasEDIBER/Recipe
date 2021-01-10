@@ -57,7 +57,7 @@ class RecipeEditor:
         self.app.bind(
             "<Control-o>", lambda event: self.chooseNewRecipeWindow())
         self.filemenu.add_command(
-            label="Neüs Rezept", command=self.addNewRecipe, accelerator="Ctrl+N")
+            label="Neues Rezept", command=self.addNewRecipe, accelerator="Ctrl+N")
         self.app.bind("<Control-n>", lambda event: self.addNewRecipe())
         self.filemenu.add_command(
             label="Rezept speichern", command=self.saveRecipe, accelerator="Ctrl+S")

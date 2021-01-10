@@ -19,7 +19,11 @@ class RecipeExport:
             self.latexFolder).writeSingleRecipeLatexFile(self.recipeToWrite)
         self.runLatex()
         self.copyPdfToLocation()
+        self.openPdf()
         shutil.rmtree(self.latexFolder, ignore_errors=True)
+
+    def openPdf(self):
+        subprocess.Popen([self.newPdfFile],shell=True)
 
     def setPdfFolderLocation(self):
         self.pdfFileDirectory = filedialog.askdirectory(
@@ -58,5 +62,6 @@ class RecipeExport:
             ["pdflatex", self.texfile, "-output-directory="+os.path.split(self.texfile)[0]])
 
     def copyPdfToLocation(self):
-        copyfile(self.texfile.replace(".tex", ".pdf"), os.path.join(
-            self.pdfFileDirectory, os.path.split(self.texfile)[1].replace(".tex", ".pdf")))
+        self.newPdfFile= os.path.join(
+            self.pdfFileDirectory, os.path.split(self.texfile)[1].replace(".tex", ".pdf"))
+        copyfile(self.texfile.replace(".tex", ".pdf"), self.newPdfFile)
