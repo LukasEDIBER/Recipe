@@ -57,13 +57,12 @@
 }
 \newcommand{\showit}[3][1in]{%
     \begin{center}
-        \bigskip
-            \includegraphics[width=2in]{#2}%
+            \includegraphics[width=2in,height=2in,keepaspectratio]{#2}%
             \par
-            \medskip
-            \emph{#3}
+            %\medskip
+            %\emph{#3}
             \par
-        \end{center}%
+    \end{center}%
     }
 
 %% Optional argument for a  heading within the ingredients section
