@@ -3,7 +3,7 @@
 \usepackage[ngerman]{babel}
 \usepackage[math]{iwona}
 \usepackage[T1]{fontenc}
-
+\usepackage[auto]{chappg}
 \usepackage[%
     a5paper,
     papersize={5.5in,8.5in},
@@ -20,20 +20,7 @@
 \setlength{\multicolsep}{0pt}
 \setlength{\columnseprule}{0pt}
 
-\makeatletter
 
-\newif\if@mainmatter \@mainmattertrue
-
-%% Borrowed from book.cls
-\newcommand\frontmatter{%
-    \cleardoublepage
-  \@mainmatterfalse
-  \pagenumbering{roman}}
-\newcommand\mainmatter{%
-    \cleardoublepage
-  \@mainmattertrue
-  \pagenumbering{arabic}}
-\makeatother
 
 %% Vary the colors at will
 

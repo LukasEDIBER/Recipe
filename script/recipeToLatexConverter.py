@@ -11,9 +11,7 @@ class RecipeToLatexConverter:
                   "º": "$^{\circ}$", "á": "\' a", "%": "\%"}
 
     def __init__(self, texFolder: str):
-
         self.recipeFolder = texFolder
-        print(self.recipeFolder)
 
     def setRecipe(self, recipe: dict):
         self.recipe = recipe
@@ -36,10 +34,8 @@ class RecipeToLatexConverter:
         newIngred = {}
         for ingredHeader in self.recipe["ingredients"]:
             newIngredHeader = self.convertUmlauteForLatexString(ingredHeader)
-            print(newIngredHeader)
             newIngred[newIngredHeader] = []
             for ingreds in self.recipe["ingredients"][ingredHeader]:
-                print(ingreds)
                 newIngred[newIngredHeader].append(
                     self.convertUmlauteForLatexString(ingreds))
         self.recipe["ingredients"] = newIngred
@@ -69,11 +65,44 @@ class RecipeToLatexConverter:
             self.writeDocumentEnd()
         return os.path.join(self.recipeFolder, self.recipeName+'.tex')
 
+    def writeRecipeBookletLatexFile(self, recipes: dict):
+        with open(os.path.join(self.recipeFolder, 'recipeBooklet.tex'), 'w+') as self.texFile:
+            self.recipesByCategory = self.getRecipesByCategory(recipes.copy())
+            self.writeDocumentClass()
+            self.writeStyleFile()
+            self.writeDocumentBegin()
+            self.writeIndexToc()
+            for category, recipeList in self.recipesByCategory.items():
+                self.writeChapterHeader(category)
+                for recipe in recipeList:
+                    self.setRecipe(recipe)
+                    self.writeRecipeHeader()
+                    self.writePrepInfo()
+                    self.writeIngrendientsAndPicture()
+                    self.writeSteps()
+            self.writeDocumentEnd()
+        return os.path.join(self.recipeFolder, 'recipeBooklet.tex')
+
+    def writeChapterHeader(self, category: str):
+        self.texFile.write("\\chapter{"+category+"}\n")
+        self.texFile.write("\\pagenumbering{bychapter}\n")
+
+    def writeIndexToc(self):
+        self.texFile.write("\\tableofcontents\n")
+        self.texFile.write("\\printindex\n")
+
+    def getRecipesByCategory(self, recipes: dict):
+        out = {}
+        for recipe in recipes.values():
+            out.setdefault(recipe["category"], []).append(recipe)
+        for category in out:
+            out[category] = sorted(out[category], key=lambda a: a["id"])
+        return out
+
     def writeDocumentClass(self):
-        self.texFile.write("\\documentclass{article}\n")
+        self.texFile.write("\\documentclass{book}\n")
 
     def writeStyleFile(self):
-        print(os.getcwd())
         with open(os.path.join(os.getcwd(), "tex", "stylefile.tex"), 'r+') as file:
             styleString = file.read()
             self.texFile.write(styleString)

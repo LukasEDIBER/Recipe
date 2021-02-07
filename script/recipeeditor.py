@@ -13,6 +13,7 @@ from more_itertools import pairwise
 from .recipe import getRecipeDataWithBasicRecipe, getEmptyRecipeDict
 from .recipeexporter import RecipeExport
 
+
 class RecipeEditor:
 
     recipeDataFileName = "recipeData.json"
@@ -29,7 +30,8 @@ class RecipeEditor:
         try:
             with open(self.recipeDataFileName, "r") as recipeDataJson:
                 self.recipes = json.load(recipeDataJson)
-            self.currentRecipe = list(self.recipes.values())[0]
+            self.currentRecipe = self.recipes[sorted(
+                list(self.recipes.keys()))[0]]
         except:
             self.recipes = getRecipeDataWithBasicRecipe()
             self.saveToJson()
@@ -40,6 +42,7 @@ class RecipeEditor:
         self.setAppTitle()
         self.addRecipeNameWidgets()
         self.addAuthorWidgets()
+        self.addCatercoryWidgets()
         self.addIndexTagsWidgets()
         self.addIngridientWidgets()
         self.addSteps()
@@ -71,15 +74,18 @@ class RecipeEditor:
         self.exportmenu = Menu(self.menubar, tearoff=0)
         self.exportmenu.add_command(
             label="Export Rezept einzeln", command=self.exportSingleLatex)
-        self.exportmenu.add_command(label="Export Rezeptbuch")
+        self.exportmenu.add_command(
+            label="Export Rezeptbuch", command=self.exportBookletLatex)
 
         self.menubar.add_cascade(label="Rezept", menu=self.filemenu)
         self.menubar.add_cascade(label="Export", menu=self.exportmenu)
         self.app.config(menu=self.menubar)
 
     def exportSingleLatex(self):
-        print(self.currentRecipe["pictureFile"])
         RecipeExport().exportSingleRecipe(self.currentRecipe)
+
+    def exportBookletLatex(self):
+        RecipeExport().exportBookletLatex(self.recipes)
 
     def setAppTitle(self):
         self.app.title("Recipe Editor")
@@ -139,13 +145,22 @@ class RecipeEditor:
             return
         self.recipes[newRecipeTitle] = getEmptyRecipeDict(newRecipeTitle)
         self.currentRecipe = self.recipes[newRecipeTitle]
+        self.currentRecipe = self.getNewIdNr()
+        self.saveRecipe()
         self.updateInput()
         self.newRecipeWindow.destroy()
+
+    def getNewIdNr(self):
+        out = 0
+        for recipe in self.recipes.values():
+            out = max(out, recipe["id"])
+        return out+1
 
     def updateInput(self):
         self.updateRecipeName()
         self.updateAuthorName()
         self.updateIndexTags()
+        self.updateCategory()
         self.updateIngredients()
         self.updateSteps()
         self.updateCookParameters()
@@ -163,6 +178,14 @@ class RecipeEditor:
         self.indexTagsEntry.delete(0, 'end')
         self.indexTagsEntry.insert(
             0, ",".join(self.currentRecipe["indexTags"]))
+
+    def updateCategory(self):
+        self.categoryEntry.delete(0, 'end')
+        if "category" in self.currentRecipe:
+            self.categoryEntry.insert(0, self.currentRecipe["category"])
+        else:
+            self.currentRecipe["category"] = "Allgemein"
+            self.categoryEntry.insert(0, "Allgemein")
 
     def updateIngredients(self):
         self.ingridienttextbox.delete('1.0', END)
@@ -228,6 +251,15 @@ class RecipeEditor:
 
         self.maxRow += 1
 
+    def addCatercoryWidgets(self):
+        chooseLabel = Label(self.app, text=" Kategorie:")
+        chooseLabel.grid(column=0, row=self.maxRow, sticky="w")
+        self.categoryEntry = Entry(self.app, width=50)
+        self.categoryEntry.grid(
+            column=1, row=self.maxRow, columnspan=4, sticky="w")
+
+        self.maxRow += 1
+
     def addIngridientWidgets(self):
         self.zutatenLabel = Label(self.app, text="Zutaten:")
         self.zutatenLabel.grid(column=0, row=self.maxRow, sticky="w")
@@ -260,21 +292,21 @@ class RecipeEditor:
 
     def addCookParameterWidgets(self):
         self.prepTimeLabel = Label(self.app, text="Zubereitungzeit (min): ")
-        self.prepTimeLabel.grid(column=4, row=3, sticky='w', padx=5)
+        self.prepTimeLabel.grid(column=4, row=4, sticky='w', padx=5)
         self.waitTimeLabel = Label(self.app, text="Wartezeit (min): ")
-        self.waitTimeLabel.grid(column=4, row=4, sticky='w', padx=5)
+        self.waitTimeLabel.grid(column=4, row=5, sticky='w', padx=5)
         self.portionLabel = Label(self.app, text="Portionen: ")
-        self.portionLabel.grid(column=4, row=5, sticky='w', padx=5)
+        self.portionLabel.grid(column=4, row=6, sticky='w', padx=5)
         self.prepTimeEntry = Entry(self.app)
-        self.prepTimeEntry.grid(column=5, row=3)
+        self.prepTimeEntry.grid(column=5, row=4)
         self.waitTimeEntry = Entry(self.app)
-        self.waitTimeEntry.grid(column=5, row=4)
+        self.waitTimeEntry.grid(column=5, row=5)
         self.portionEntry = Entry(self.app)
-        self.portionEntry.grid(column=5, row=5)
+        self.portionEntry.grid(column=5, row=6)
 
     def addPictureShow(self):
         self.pictureLabel = Label(self.app)
-        self.pictureLabel.grid(column=4, row=6,
+        self.pictureLabel.grid(column=4, row=7,
                                columnspan=2, pady=30, padx=30, rowspan=4)
         self.maxRow += 1
 
@@ -282,7 +314,7 @@ class RecipeEditor:
         self.newPictureButton = Button(self.app,
                                        text="Neues Bild laden",
                                        command=self.getNewPicutre)
-        self.newPictureButton.grid(column=4, row=10, columnspan=2)
+        self.newPictureButton.grid(column=4, row=11, columnspan=2)
 
     def getNewPicutre(self):
         filename = filedialog.askopenfilename(initialdir=os.getcwd(),
@@ -307,6 +339,7 @@ class RecipeEditor:
         self.currentRecipe["prepTime"] = self.prepTimeEntry.get()
         self.currentRecipe["waitTime"] = self.waitTimeEntry.get()
         self.currentRecipe["portionSize"] = self.portionEntry.get()
+        self.currentRecipe["category"] = self.categoryEntry.get()
         self.saveCurrenRecipeIngredients()
         self.saveCurrentRecipeMethod()
         self.recipes[self.currentRecipe["recipeTitle"]] = self.currentRecipe
