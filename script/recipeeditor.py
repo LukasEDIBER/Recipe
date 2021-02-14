@@ -36,6 +36,13 @@ class RecipeEditor:
             self.recipes = getRecipeDataWithBasicRecipe()
             self.saveToJson()
             self.currentRecipe = list(self.recipes.values())[0]
+        self.initCategories()
+
+    def initCategories(self):
+        self.categorySet=set()
+        for recipe in self.recipes.values():
+            self.categorySet.add(recipe["category"])
+        print(self.categorySet)
 
     def createLayout(self):
         self.addMenuBar()
@@ -180,12 +187,9 @@ class RecipeEditor:
             0, ",".join(self.currentRecipe["indexTags"]))
 
     def updateCategory(self):
-        self.categoryEntry.delete(0, 'end')
-        if "category" in self.currentRecipe:
-            self.categoryEntry.insert(0, self.currentRecipe["category"])
-        else:
-            self.currentRecipe["category"] = "Allgemein"
-            self.categoryEntry.insert(0, "Allgemein")
+        self.categoryVariable.set(self.currentRecipe["category"])
+        self.categoryDropdown = OptionMenu(
+            self.app, self.categoryVariable, self.currentRecipe["category"], *self.categorySet)
 
     def updateIngredients(self):
         self.ingridienttextbox.delete('1.0', END)
@@ -254,10 +258,11 @@ class RecipeEditor:
     def addCatercoryWidgets(self):
         chooseLabel = Label(self.app, text=" Kategorie:")
         chooseLabel.grid(column=0, row=self.maxRow, sticky="w")
-        self.categoryEntry = Entry(self.app, width=50)
-        self.categoryEntry.grid(
-            column=1, row=self.maxRow, columnspan=4, sticky="w")
-
+        self.categoryVariable = StringVar(self.app)
+        self.categoryVariable.set(self.currentRecipe["category"])
+        self.categoryDropdown = OptionMenu(
+            self.app, self.categoryVariable, self.currentRecipe["category"], *self.categorySet)
+        self.categoryDropdown.grid(column=1, row=self.maxRow, columnspan=4, sticky="w")
         self.maxRow += 1
 
     def addIngridientWidgets(self):
@@ -339,7 +344,7 @@ class RecipeEditor:
         self.currentRecipe["prepTime"] = self.prepTimeEntry.get()
         self.currentRecipe["waitTime"] = self.waitTimeEntry.get()
         self.currentRecipe["portionSize"] = self.portionEntry.get()
-        self.currentRecipe["category"] = self.categoryEntry.get()
+        self.currentRecipe["category"] = self.categoryVariable.get()
         self.saveCurrenRecipeIngredients()
         self.saveCurrentRecipeMethod()
         self.recipes[self.currentRecipe["recipeTitle"]] = self.currentRecipe
