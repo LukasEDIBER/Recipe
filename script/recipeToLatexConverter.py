@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 import os
-
+import copy
 
 class RecipeToLatexConverter:
 
@@ -24,7 +24,7 @@ class RecipeToLatexConverter:
         return inputString
 
     def convertUmlaute(self):
-        for key in ["recipeTitle", "portionSize", "author"]:
+        for key in ["recipeTitle", "portionSize", "author", "category"]:
             self.recipe[key] = self.convertUmlauteForLatexString(
                 self.recipe[key])
         newTags = []
@@ -53,6 +53,7 @@ class RecipeToLatexConverter:
             self.writeSteps()
 
     def writeSingleRecipeLatexFile(self, recipe: dict):
+        recipe=copy.deepcopy(recipe)
         self.setRecipe(recipe)
         with open(os.path.join(self.recipeFolder, self.recipeName+'.tex'), 'w+') as self.texFile:
             self.writeDocumentClass()
@@ -66,8 +67,9 @@ class RecipeToLatexConverter:
         return os.path.join(self.recipeFolder, self.recipeName+'.tex')
 
     def writeRecipeBookletLatexFile(self, recipes: dict):
+        recipes2=copy.deepcopy(recipes)
         with open(os.path.join(self.recipeFolder, 'recipeBooklet.tex'), 'w+') as self.texFile:
-            self.recipesByCategory = self.getRecipesByCategory(recipes.copy())
+            self.recipesByCategory = self.getRecipesByCategory(recipes2)
             self.writeDocumentClass()
             self.writeStyleFile()
             self.writeDocumentBegin()
@@ -84,7 +86,8 @@ class RecipeToLatexConverter:
         return os.path.join(self.recipeFolder, 'recipeBooklet.tex')
 
     def writeChapterHeader(self, category: str):
-        self.texFile.write("\\chapter{"+category+"}\n")
+        self.texFile.write("\\chapter{"+self.convertUmlauteForLatexString(
+            category)+"}\n")
         self.texFile.write("\\pagenumbering{bychapter}\n")
 
     def writeIndexToc(self):

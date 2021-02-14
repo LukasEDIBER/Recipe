@@ -4,14 +4,14 @@ from tkinter import filedialog
 import shutil
 from shutil import copyfile
 import subprocess
-
+import copy
 
 class RecipeExport:
     def __init__(self):
         return
 
     def exportSingleRecipe(self, recipe: dict):
-        self.recipeToWrite = recipe.copy()
+        self.recipeToWrite = copy.deepcopy(recipe)
         self.setPdfFolderLocation()
         self.createTexFolder()
         self.copyPictureToTexFolder()
@@ -72,7 +72,7 @@ class RecipeExport:
         copyfile(self.texfile.replace(".tex", ".pdf"), self.newPdfFile)
 
     def exportBookletLatex(self, recipes: dict):
-        self.recipesToWrite = recipes.copy()
+        self.recipesToWrite = copy.deepcopy(recipes)
         self.setPdfFolderLocation()
         self.createTexFolder()
         self.copyPicturesToTexFolder()

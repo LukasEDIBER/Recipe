@@ -12,7 +12,7 @@ import subprocess
 from more_itertools import pairwise
 from .recipe import getRecipeDataWithBasicRecipe, getEmptyRecipeDict
 from .recipeexporter import RecipeExport
-
+import copy
 
 class RecipeEditor:
 
@@ -82,10 +82,10 @@ class RecipeEditor:
         self.app.config(menu=self.menubar)
 
     def exportSingleLatex(self):
-        RecipeExport().exportSingleRecipe(self.currentRecipe)
+        RecipeExport().exportSingleRecipe(copy.deepcopy(self.currentRecipe))
 
     def exportBookletLatex(self):
-        RecipeExport().exportBookletLatex(self.recipes)
+        RecipeExport().exportBookletLatex(copy.deepcopy(self.recipes))
 
     def setAppTitle(self):
         self.app.title("Recipe Editor")
