@@ -8,7 +8,7 @@ class RecipeToLatexConverter:
     umlautDict = {"Ä": "{\"A}", "Ö": "{\"O}", "Ü": "{\"U}",
                   "ä": "{\"a}", "ö": "{\"o}", "ü": "{\"u}",
                   "ß": "{\ss}", "&": "\&", "°": "$^{\circ}$",
-                  "º": "$^{\circ}$", "á": "\' a", "%": "\%"}
+                  "º": "$^{\circ}$", "á": "\' a", "%": "\%","'": "\\textquotesingle "}
 
     def __init__(self, texFolder: str):
         self.recipeFolder = texFolder

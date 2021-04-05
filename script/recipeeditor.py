@@ -28,8 +28,8 @@ class RecipeEditor:
 
     def loadRecipeData(self):
         try:
-            with open(self.recipeDataFileName, "r") as recipeDataJson:
-                self.recipes = json.load(recipeDataJson)
+            with open(self.recipeDataFileName, "r", encoding='utf8') as recipeDataJson:
+                self.recipes = json.load(recipeDataJson, encoding='utf8')
             self.currentRecipe = self.recipes[sorted(
                 list(self.recipes.keys()))[0]]
         except:
@@ -152,9 +152,9 @@ class RecipeEditor:
             return
         self.recipes[newRecipeTitle] = getEmptyRecipeDict(newRecipeTitle)
         self.currentRecipe = self.recipes[newRecipeTitle]
-        self.currentRecipe = self.getNewIdNr()
-        self.saveRecipe()
+        self.currentRecipe["id"] = self.getNewIdNr()
         self.updateInput()
+        self.saveRecipe()
         self.newRecipeWindow.destroy()
 
     def getNewIdNr(self):
@@ -352,8 +352,8 @@ class RecipeEditor:
         self.updateInput()
 
     def saveToJson(self):
-        fileRecipes = open(self.recipeDataFileName, 'w+')
-        json.dump(self.recipes, fileRecipes)
+        fileRecipes = open(self.recipeDataFileName, 'w+', encoding='utf-8') 
+        json.dump(self.recipes, fileRecipes, ensure_ascii=False)
 
     def saveCurrenRecipeIngredients(self):
         self.currentRecipe["ingredients"].clear()
